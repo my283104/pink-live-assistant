@@ -3,7 +3,7 @@
 $ErrorActionPreference = "Stop"
 $root = "D:\PinkLive"
 New-Item -ItemType Directory -Force -Path $root | Out-Null
-$repo = "https://raw.githubusercontent.com/my283104/pink-live-assistant/feature/supabase-sync/sync-server"
+$repo = "https://raw.githubusercontent.com/my283104/pink-live-assistant/main/sync-server"
 $script = Join-Path $root "cloud_pull.py"
 Invoke-WebRequest -Uri "$repo/cloud_pull.py" -OutFile $script
 Write-Host "First login to your cloud account (password is encrypted with Windows DPAPI)."
