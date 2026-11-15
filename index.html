@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fff2f7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="粉兔直播助手">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>粉兔直播助手 Pink Live</title>
+<style>
+:root{--pink:#ee8fb4;--deep:#c85f8b;--pale:#fff0f5;--cream:#fffaf9;--ink:#594650;--muted:#a78d98;--line:#f3dce6;--lav:#f4efff;--green:#72ad91;--shadow:0 8px 24px rgba(208,117,155,.12)}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#fff3f8 0,#fffaf9 48%,#fff8fb 100%);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Hiragino Sans GB",sans-serif;padding-bottom:calc(88px + env(safe-area-inset-bottom))}
+button,input,textarea{font:inherit}button{cursor:pointer}.app{max-width:540px;margin:0 auto;min-height:100vh;padding:calc(12px + env(safe-area-inset-top)) 17px 25px}
+.top{display:flex;align-items:center;justify-content:space-between;margin:4px 2px 18px}.brand{display:flex;align-items:center;gap:10px}.rabbit{width:44px;height:44px;border-radius:16px;background:#ffe2ed;display:grid;place-items:center;font-size:25px;box-shadow:var(--shadow)}.brand h1{font-size:19px;margin:0;font-weight:800}.brand small{display:block;color:var(--muted);font-size:9px;letter-spacing:1.1px;margin-top:3px}.date-pill{background:white;border:1px solid var(--line);border-radius:20px;padding:8px 11px;color:var(--deep);font-size:11px}
+.hero{background:linear-gradient(135deg,#f5a9c5,#e983ac);border-radius:26px;padding:19px;color:white;box-shadow:0 12px 28px rgba(225,130,168,.23);position:relative;overflow:hidden}.hero:after{content:"♡";position:absolute;right:15px;top:-17px;font-size:112px;color:rgba(255,255,255,.15)}.hero-label{font-size:12px;opacity:.92}.hero-amount{font-size:34px;font-weight:850;letter-spacing:.3px;margin:6px 0 15px}.hero-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}.hero-stat{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.25);border-radius:15px;padding:10px 11px}.hero-stat span{display:block;font-size:10px;opacity:.92}.hero-stat b{display:block;font-size:17px;margin-top:4px}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin:22px 2px 11px}.section-head h2{font-size:15px;margin:0}.section-head small{font-size:10px;color:var(--muted)}
+.kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.kpi{background:white;border:1px solid #f7e4ec;border-radius:18px;padding:14px;box-shadow:0 4px 12px rgba(210,130,160,.05)}.kpi .klabel{font-size:11px;color:var(--muted)}.kpi b{display:block;font-size:22px;margin-top:7px;color:var(--deep)}.kpi.views b{color:#9870b5}.kpi.rate b{color:#d18b56}.kpi small{font-size:10px;color:var(--muted)}
+.primary{width:100%;border:0;border-radius:18px;background:#e982aa;color:white;font-weight:800;padding:15px;margin-top:14px;box-shadow:0 7px 16px rgba(226,127,166,.25);font-size:15px}.primary:active,.soft:active{transform:scale(.985)}
+.panel{background:rgba(255,255,255,.9);border:1px solid #f7e5ec;border-radius:21px;padding:14px;box-shadow:var(--shadow)}
+.mini-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #faedf2;font-size:12px}.mini-row:last-child{border-bottom:0}.mini-row b{font-size:13px}
+.nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,250,252,.95);backdrop-filter:blur(18px);border-top:1px solid #f4dfe8;padding:9px 12px calc(9px + env(safe-area-inset-bottom));display:flex;justify-content:center;z-index:5}.nav-inner{width:100%;max-width:500px;display:flex;justify-content:space-around}.nav button{border:0;background:none;color:#b49aa5;font-size:10px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:2px 18px}.nav button strong{font-size:21px;font-weight:500}.nav button.active{color:var(--deep)}
+.view{display:none}.view.active{display:block}.page-title{font-size:20px;margin:8px 2px 15px}
+.month-row{display:flex;align-items:center;justify-content:space-between;margin:12px 0}.month-row button{border:0;background:white;color:var(--deep);border-radius:12px;padding:8px 11px;font-size:11px}.month-title{font-weight:800;font-size:14px}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:12px 0}.summary-card{background:white;border:1px solid var(--line);border-radius:17px;padding:13px}.summary-card small{color:var(--muted);font-size:10px}.summary-card b{display:block;font-size:19px;margin-top:6px;color:var(--deep)}
+.chart-wrap{height:170px;position:relative;margin-top:8px}.chart-wrap canvas{width:100%;height:100%}
+.metric-tabs{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.metric-tabs button{border:1px solid var(--line);background:white;border-radius:20px;padding:7px 11px;font-size:10px;color:var(--muted)}.metric-tabs button.active{background:#ffeaf2;color:var(--deep);border-color:#f0b6cd}
+.record{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #faedf2}.record:last-child{border:0}.record-date{width:48px;height:48px;background:#fff0f5;border-radius:15px;display:grid;place-items:center;color:var(--deep);font-weight:800;font-size:12px;flex-shrink:0}.record-info{flex:1;min-width:0}.record-info b{display:block;font-size:12px}.record-info small{display:block;color:var(--muted);font-size:10px;margin-top:4px}.record-value{text-align:right}.record-value b{display:block;color:var(--deep);font-size:13px}.record-value small{font-size:10px;color:var(--muted)}
+.field{margin:13px 0}.field label{display:block;font-size:11px;color:var(--muted);margin-bottom:7px}.field input,.field textarea{width:100%;border:1px solid var(--line);background:white;border-radius:13px;padding:12px;color:var(--ink);outline:none}.field input:focus,.field textarea:focus{border-color:#e9a0bd;box-shadow:0 0 0 3px #fff0f5}.field textarea{resize:vertical;min-height:62px}
+.overlay{position:fixed;inset:0;background:rgba(75,45,60,.28);display:none;align-items:flex-end;justify-content:center;z-index:10}.overlay.show{display:flex}.sheet{width:100%;max-width:540px;background:#fffafc;border-radius:26px 26px 0 0;padding:18px 18px calc(22px + env(safe-area-inset-bottom));max-height:93vh;overflow:auto}.sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.sheet-head h2{font-size:18px;margin:0}.close{border:0;background:#fff0f5;border-radius:50%;width:32px;height:32px;color:var(--deep);font-size:18px}.save{width:100%;border:0;background:#e982aa;color:white;border-radius:15px;padding:14px;font-weight:800;margin-top:10px}
+.hint{font-size:10px;color:var(--muted);line-height:1.65}.empty{text-align:center;color:var(--muted);padding:25px 10px;font-size:12px}.empty span{font-size:29px;display:block;margin-bottom:8px}
+.soft{border:1px solid var(--line);background:white;color:var(--deep);border-radius:11px;padding:8px 10px;font-size:11px}.danger{color:#c56b8f}.setting-row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid #f8eaf0;font-size:12px}.setting-row:last-child{border:0}
+.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:#684b5a;color:white;border-radius:22px;padding:10px 16px;font-size:12px;opacity:0;pointer-events:none;transition:.2s;z-index:20;white-space:nowrap}.toast.show{opacity:1}
+@media(min-width:600px){body{padding:20px 0 100px}.app{min-height:calc(100vh - 40px)}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top"><div class="brand"><div class="rabbit">🐰</div><div><h1>粉兔直播助手</h1><small>PINK LIVE · 每天进步一点点</small></div></div><div class="date-pill" id="todayLabel"></div></header>
+
+<main id="homeView" class="view active">
+<section class="hero"><div class="hero-label">今日成交金额 · DOUYIN LIVE</div><div class="hero-amount" id="todayAmount">¥0.00</div><div class="hero-row"><div class="hero-stat"><span>👀 今日场观</span><b id="todayViews">—</b></div><div class="hero-stat"><span>💗 今日转化率</span><b id="todayRate">—</b></div></div></section>
+<div class="section-head"><h2>🌷 今日直播表现</h2><small id="todayStatus">等待记录</small></div>
+<div class="kpi-grid">
+<div class="kpi"><div class="klabel">💰 成交金额</div><b id="homeAmount">¥0.00</b><small>人民币 CNY</small></div>
+<div class="kpi views"><div class="klabel">👀 直播场观</div><b id="homeViews">—</b><small>累计观看人数</small></div>
+<div class="kpi rate"><div class="klabel">💗 转化率</div><b id="homeRate">—</b><small>百分比</small></div>
+<div class="kpi"><div class="klabel">📅 本月直播天数</div><b id="monthDays">0</b><small>已记录天数</small></div>
+</div>
+<button class="primary" id="addToday">＋ 记录今天的直播数据</button>
+<div class="section-head"><h2>🎀 最近直播</h2><small>最近 5 天有记录的数据</small></div>
+<section class="panel" id="recentRecords"></section>
+</main>
+
+<main id="statsView" class="view">
+<h2 class="page-title">📊 直播数据统计</h2>
+<div class="month-row"><button id="prevMonth">‹ 上个月</button><div class="month-title" id="statsMonth"></div><button id="nextMonth">下个月 ›</button></div>
+<div class="summary-grid">
+<div class="summary-card"><small>本月成交总金额</small><b id="statAmount">¥0.00</b></div>
+<div class="summary-card"><small>本月累计场观</small><b id="statViews">0</b></div>
+<div class="summary-card"><small>本月平均转化率</small><b id="statRate">—</b></div>
+<div class="summary-card"><small>本月日均成交</small><b id="statAverage">¥0.00</b></div>
+</div>
+<section class="panel"><div class="section-head" style="margin:0"><h2>🌸 趋势图</h2></div><div class="metric-tabs"><button class="active" data-metric="amount">成交金额</button><button data-metric="views">场观</button><button data-metric="rate">转化率</button></div><div class="chart-wrap"><canvas id="trendChart"></canvas></div><div class="hint" id="chartHint">按日期查看当月变化</div></section>
+<p class="hint">平均转化率按有记录日期的简单平均计算；累计场观为每日场观相加。若平台后台对场观采用不同统计口径，请以平台后台为准。</p>
+</main>
+
+<main id="recordsView" class="view">
+<h2 class="page-title">📖 每日直播记录</h2>
+<div class="field"><label>筛选月份</label><input type="month" id="filterMonth"></div>
+<section class="panel" id="allRecords"></section>
+</main>
+
+<main id="settingsView" class="view">
+<h2 class="page-title">🐰 小兔设置</h2>
+<section class="panel">
+<div class="setting-row"><span>🎬 直播平台</span><b>抖音</b></div>
+<div class="setting-row"><span>📆 记录频率</span><b>每天一条</b></div>
+<div class="setting-row"><span>💴 默认货币</span><b>人民币（¥）</b></div>
+<div class="setting-row"><span>🔒 数据保存</span><b>本机浏览器</b></div>
+<div class="setting-row"><span>📦 导出数据</span><button class="soft" id="exportCsv">导出 CSV</button></div>
+<div class="setting-row"><span>🤖 机器人数据备份</span><button class="soft" id="exportJson">导出 JSON</button></div>
+<div class="setting-row"><span>🗑️ 清空所有记录</span><button class="soft danger" id="clearData">清空</button></div>
+</section>
+<section class="panel" style="margin-top:14px"><b style="font-size:13px">🤖 机器人扩展预留</b><p class="hint">每条记录使用统一字段：date、platform、amount、conversion_rate、views、note。未来可增加 API 同步层，让机器人读取、写入和分析同一套直播数据。</p></section>
+<p class="hint">数据只保存在当前设备的浏览器本地存储中。请定期导出 JSON/CSV 备份。清除 Safari 网站数据或更换设备可能导致本地数据丢失。</p>
+</main>
+</div>
+
+<nav class="nav"><div class="nav-inner">
+<button class="active" data-view="homeView"><strong>🏠</strong>首页</button><button data-view="statsView"><strong>📈</strong>统计</button><button data-view="recordsView"><strong>🗓️</strong>记录</button><button data-view="settingsView"><strong>🎀</strong>我的</button>
+</div></nav>
+
+<div class="overlay" id="modal"><div class="sheet">
+<div class="sheet-head"><h2 id="formTitle">🌷 记录今日直播</h2><button class="close" id="closeModal">×</button></div>
+<div class="field"><label>直播日期</label><input type="date" id="fDate"></div>
+<div class="field"><label>💰 成交金额（人民币 ¥）</label><input type="number" id="fAmount" inputmode="decimal" min="0" step="0.01" placeholder="例如：8680.00"></div>
+<div class="field"><label>💗 转化率（%）</label><input type="number" id="fRate" inputmode="decimal" min="0" max="100" step="0.01" placeholder="例如：3.68"></div>
+<div class="field"><label>👀 直播场观</label><input type="number" id="fViews" inputmode="numeric" min="0" step="1" placeholder="例如：12860"></div>
+<div class="field"><label>📝 备注（选填）</label><textarea id="fNote" placeholder="例如：上新专场、活动日、投流情况……"></textarea></div>
+<p class="hint">每天只保留一条记录。同一天再次保存会更新当天数据，不会重复累计。</p>
+<button class="save" id="saveRecord">保存今日数据 ♡</button>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY="pinkLive.douyin.daily.v1";
+let records=loadRecords(), statsDate=new Date(), chartMetric="amount", editingDate=null;
+const $=id=>document.getElementById(id);
+const today=localDate(new Date());
+function localDate(d){const x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,10)}
+function loadRecords(){try{const v=JSON.parse(localStorage.getItem(KEY)||"[]");return Array.isArray(v)?v:[]}catch(e){return []}}
+function saveStore(){localStorage.setItem(KEY,JSON.stringify(records))}
+function money(v){return "¥"+Number(v||0).toLocaleString("zh-CN",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function number(v){return Number(v||0).toLocaleString("zh-CN")}
+function monthKey(d){return d.slice(0,7)}
+function monthRecords(m){return records.filter(r=>monthKey(r.date)===m)}
+function getToday(){return records.find(r=>r.date===today)}
+function toast(s){$("toast").textContent=s;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),1900)}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function avg(a){return a.length?a.reduce((s,v)=>s+v,0)/a.length:0}
+function fmtRate(v){return v==null||v===""?"—":Number(v).toFixed(2)+"%"}
+function recordCard(r){const d=new Date(r.date+"T00:00:00");return `<div class="record"><div class="record-date">${d.getMonth()+1}月${d.getDate()}日</div><div class="record-info"><b>抖音直播</b><small>场观 ${number(r.views)} · 转化 ${fmtRate(r.conversion_rate)}</small></div><div class="record-value"><b>${money(r.amount)}</b><small>${r.note?esc(r.note):"成交金额"}</small></div><button class="soft edit" data-date="${r.date}">编辑</button></div>`}
+function renderHome(){
+ const t=getToday(), m=monthRecords(monthKey(today));
+ $("todayAmount").textContent=t?money(t.amount):"—";$("todayViews").textContent=t?number(t.views):"—";$("todayRate").textContent=t?fmtRate(t.conversion_rate):"—";
+ $("homeAmount").textContent=t?money(t.amount):"—";$("homeViews").textContent=t?number(t.views):"—";$("homeRate").textContent=t?fmtRate(t.conversion_rate):"—";$("monthDays").textContent=m.length+" 天";
+ $("todayStatus").textContent=t?"今日数据已记录 ♡":"还没有记录今天的数据";
+ const latest=[...records].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+ $("recentRecords").innerHTML=latest.length?latest.map(recordCard).join(""):`<div class="empty"><span>🐰</span>还没有直播记录，先记录今天的成绩吧！</div>`;
+}
+function renderStats(){
+ const m=statsDate.getFullYear()+"-"+String(statsDate.getMonth()+1).padStart(2,"0"), list=monthRecords(m);
+ $("statsMonth").textContent=m;
+ const total=list.reduce((s,r)=>s+Number(r.amount),0), views=list.reduce((s,r)=>s+Number(r.views),0), rates=list.map(r=>Number(r.conversion_rate)).filter(v=>Number.isFinite(v));
+ $("statAmount").textContent=money(total);$("statViews").textContent=number(views);$("statRate").textContent=rates.length?fmtRate(avg(rates)):"—";$("statAverage").textContent=money(list.length?total/list.length:0);
+ drawChart(list);
+}
+function drawChart(list){
+ const c=$("trendChart"), rect=c.getBoundingClientRect(), dpr=window.devicePixelRatio||1;
+ c.width=Math.max(300,rect.width*dpr);c.height=170*dpr;
+ const ctx=c.getContext("2d");ctx.scale(dpr,dpr);const w=c.width/dpr,h=170;
+ const days=Array.from({length:new Date(statsDate.getFullYear(),statsDate.getMonth()+1,0).getDate()},(_,i)=>i+1);
+ const map=new Map(list.map(r=>[Number(r.date.slice(8,10)),Number(r[chartMetric]??0)]));
+ const vals=days.map(d=>map.get(d)||0), max=Math.max(...vals,1), left=35,right=8,top=12,bottom=25,plotH=h-top-bottom,plotW=w-left-right;
+ ctx.font="9px -apple-system, sans-serif";ctx.fillStyle="#ad98a2";ctx.strokeStyle="#f5e5ec";ctx.lineWidth=1;
+ for(let i=0;i<4;i++){let y=top+plotH*i/3;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(w-right,y);ctx.stroke()}
+ const step=plotW/days.length;ctx.strokeStyle="#e98bb0";ctx.fillStyle="#e98bb0";ctx.lineWidth=2;ctx.beginPath();
+ vals.forEach((v,i)=>{let x=left+step*(i+.5),y=top+plotH-(v/max)*plotH;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.stroke();
+ vals.forEach((v,i)=>{if(v>0){let x=left+step*(i+.5),y=top+plotH-(v/max)*plotH;ctx.beginPath();ctx.arc(x,y,2.6,0,Math.PI*2);ctx.fill()}});
+ [1,5,10,15,20,25,days.length].filter((v,i,a)=>a.indexOf(v)===i&&v<=days.length).forEach(d=>{let x=left+step*(d-.5);ctx.fillStyle="#ad98a2";ctx.fillText(String(d),x-4,h-7)});
+ const labels={amount:"成交金额（元）",views:"场观（人次）",rate:"转化率（%）"};$("chartHint").textContent=labels[chartMetric]+" · 每日数据";
+}
+function renderRecords(){
+ const f=$("filterMonth").value, list=[...records].filter(r=>!f||monthKey(r.date)===f).sort((a,b)=>b.date.localeCompare(a.date));
+ $("allRecords").innerHTML=list.length?list.map(recordCard).join(""):`<div class="empty"><span>🌷</span>这个月还没有直播数据</div>`;
+}
+function render(){renderHome();renderStats();renderRecords()}
+function openForm(date=today){
+ editingDate=date;const r=records.find(x=>x.date===date);
+ $("formTitle").textContent=r?"✏️ 修改直播数据":"🌷 记录直播数据";
+ $("fDate").value=date;$("fAmount").value=r?.amount??"";$("fRate").value=r?.conversion_rate??"";$("fViews").value=r?.views??"";$("fNote").value=r?.note??"";
+ $("modal").classList.add("show");
+}
+function saveRecord(){
+ const date=$("fDate").value, amount=$("fAmount").value, rate=$("fRate").value, views=$("fViews").value;
+ if(!date){toast("请选择直播日期");return}
+ if(amount===""||!Number.isFinite(Number(amount))||Number(amount)<0){toast("请填写正确的成交金额");return}
+ if(rate===""||!Number.isFinite(Number(rate))||Number(rate)<0||Number(rate)>100){toast("转化率请填写 0–100 之间的百分比");return}
+ if(views===""||!Number.isInteger(Number(views))||Number(views)<0){toast("请填写正确的场观人数");return}
+ const obj={date,platform:"douyin",currency:"CNY",amount:Math.round(Number(amount)*100)/100,conversion_rate:Math.round(Number(rate)*100)/100,views:Number(views),note:$("fNote").value.trim(),updated_at:new Date().toISOString(),schema_version:1};
+ const idx=records.findIndex(r=>r.date===date);
+ if(idx>=0)records[idx]=obj;else records.push(obj);
+ records.sort((a,b)=>a.date.localeCompare(b.date));saveStore();$("modal").classList.remove("show");render();toast("直播数据保存成功 ♡");
+}
+function handleEdit(e){const b=e.target.closest(".edit");if(b)openForm(b.dataset.date)}
+function download(filename,content,type){
+ const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function exportJSON(){const payload={app:"Pink Live",schema_version:1,exported_at:new Date().toISOString(),platform:"douyin",currency:"CNY",records:[...records]};download("粉兔直播数据_"+today+".json",JSON.stringify(payload,null,2),"application/json;charset=utf-8");toast("JSON 数据已导出")}
+function exportCSV(){const rows=[["日期","平台","成交金额(CNY)","转化率(%)","场观","备注"],...records.map(r=>[r.date,"抖音",r.amount,r.conversion_rate,r.views,r.note||""])];const csv="\uFEFF"+rows.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\r\n");download("粉兔直播数据_"+today+".csv",csv,"text/csv;charset=utf-8");toast("CSV 数据已导出")}
+$("todayLabel").textContent=new Date().toLocaleDateString("zh-CN",{month:"long",day:"numeric"});
+$("addToday").onclick=()=>openForm(today);$("closeModal").onclick=()=>$("modal").classList.remove("show");$("modal").addEventListener("click",e=>{if(e.target===$("modal"))$("modal").classList.remove("show")});$("saveRecord").onclick=saveRecord;
+$("recentRecords").addEventListener("click",handleEdit);$("allRecords").addEventListener("click",handleEdit);
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===b.dataset.view));if(b.dataset.view==="statsView")renderStats()});
+$("prevMonth").onclick=()=>{statsDate.setMonth(statsDate.getMonth()-1);renderStats()};$("nextMonth").onclick=()=>{statsDate.setMonth(statsDate.getMonth()+1);renderStats()};
+document.querySelectorAll(".metric-tabs button").forEach(b=>b.onclick=()=>{chartMetric=b.dataset.metric;document.querySelectorAll(".metric-tabs button").forEach(x=>x.classList.toggle("active",x===b));renderStats()});
+$("filterMonth").value=monthKey(today);$("filterMonth").onchange=renderRecords;$("exportJson").onclick=exportJSON;$("exportCsv").onclick=exportCSV;
+$("clearData").onclick=()=>{if(confirm("确定清空全部直播记录吗？建议先导出 JSON 备份。此操作无法撤销。")){records=[];saveStore();render();toast("记录已清空")}};
+window.addEventListener("resize",()=>{if($("statsView").classList.contains("active"))renderStats()});
+render();
+if("serviceWorker" in navigator && location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+</script>
+</body></html>
