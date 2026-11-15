@@ -21,7 +21,7 @@ def protect(raw,encrypt=True):
     input_blob,hold=blob(raw);output=BLOB()
     fn=crypt.CryptProtectData if encrypt else crypt.CryptUnprotectData
     if encrypt: ok=fn(ctypes.byref(input_blob),None,None,None,None,0,ctypes.byref(output))
-    else: ok=fn(ctypes.byref(input_blob),None,None,None,None,None,0,ctypes.byref(output))
+    else: ok=fn(ctypes.byref(input_blob),None,None,None,None,0,ctypes.byref(output))
     if not ok: raise ctypes.WinError()
     try:return ctypes.string_at(output.pbData,output.cbData)
     finally:kernel.LocalFree(output.pbData)
