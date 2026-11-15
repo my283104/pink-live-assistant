@@ -46,8 +46,10 @@ async function sync(){
  if(!user?.id)throw Error("未登录");
  const remote=await api("/rest/v1/live_records?select=record_date,amount,conversion_rate,views,note,updated_at&order=record_date.asc&limit=10000",{headers:h});
  const localMap=new Map(records.map(r=>[r.date,normalize(r)]).filter(x=>x[1]));
+ if(localMap.size!==records.length)throw Error("本地存在无效记录，已暂停同步以保护数据");
  const remoteMap=new Map(remote.map(r=>[r.record_date,normalize({...r,date:r.record_date})]).filter(x=>x[1]));
  const remoteRaw=new Map(remote.map(r=>[r.record_date,r]));
+ if(remoteMap.size!==remote.length)throw Error("云端记录异常，已暂停同步");
  const uploads=[],downloads=[],conflicts=[];
  const startingLocal=new Map(localMap);
  for(const [date,l] of localMap){
@@ -69,7 +71,6 @@ async function sync(){
  for(const r of uploads){
   const body={user_id:user.id,record_date:r.date,amount:r.amount,conversion_rate:r.conversion_rate,views:r.views,note:r.note,updated_at:r.updated_at};
   if(remoteMap.has(r.date)){
-   const existing=remoteMap.get(r.date);
    const params=new URLSearchParams({record_date:"eq."+r.date,updated_at:"eq."+remoteRaw.get(r.date).updated_at});
    const changed=await api("/rest/v1/live_records?"+params,{method:"PATCH",headers:{...h,Prefer:"return=representation"},body:JSON.stringify(body)});
    if(!Array.isArray(changed)||changed.length!==1)throw Error("云端数据已变化，请稍后重试");
