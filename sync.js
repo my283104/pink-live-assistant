@@ -3,6 +3,7 @@
 const URL="https://lwufkxqueacijsrsjsui.supabase.co";
 const KEY="sb_publishable_L5Q4vClg-mkDuZsDL1dmqw_4_BxruEE";
 const SESSION_KEY="pinkLive.supabase.session.v1";
+const LAST_SYNC_KEY="pinkLive.sync.lastSuccessful.v1";
 const BACKUP_KEY="pinkLive.sync.premerge.v1";
 const CONFLICT_KEY="pinkLive.sync.conflicts.v1";
 const headers=()=>({"apikey":KEY,"Content-Type":"application/json"});
@@ -81,6 +82,7 @@ async function sync(){
   records=[...map.values()].sort((a,b)=>a.date.localeCompare(b.date));
   saveStore();render();
  }
+ localStorage.setItem(LAST_SYNC_KEY,new Date().toISOString());
  status("☁️ 已同步"+(conflicts.length?" · 冲突已备份":""));
  }catch(e){status("⚠️ 未同步："+String(e.message||e).slice(0,55))}
  finally{busy=false}
@@ -91,8 +93,8 @@ async function login(mode){
  status("正在验证账号…");
  try{
   if(mode==="signup"){
-   const r=await api("/auth/v1/signup",{method:"POST",body:JSON.stringify({email,password})});
-   if(!r.access_token){status("注册成功，请先打开邮箱验证，再点击登录");return}
+   const r=await api("/auth/v1/signup?redirect_to="+encodeURIComponent(location.origin+location.pathname),{method:"POST",body:JSON.stringify({email,password})});
+   if(!r.access_token){status("请打开邮箱验证账号，再返回应用登录");return}
    session={...r,expires_at:Date.now()+r.expires_in*1000};
   }else{
    const r=await api("/auth/v1/token?grant_type=password",{method:"POST",body:JSON.stringify({email,password})});
