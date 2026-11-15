@@ -24,4 +24,4 @@ Status: **feature branch only**. Do not merge into main until an end-to-end test
 - Cloud data is not yet replicated to Windows until Windows installer/login is run successfully.
 - The current sync algorithm keeps conflict snapshots but does not offer manual merge controls; a newer timestamp normally wins. Before production, test simultaneous edits on the same date and recovery from snapshots.
 - Never clear Safari website data before verifying cloud backup and Windows restore.
-- Password recovery, server-side rate limits, pagination above 10,000 phone records, and a full restore workflow are not implemented.
+- Password recovery, server-side rate limits, pagination above 10,000 phone records, and automated Windows-to-phone restore are not implemented. The PWA now includes an additive JSON import that keeps existing dates and saves a pre-import snapshot.
