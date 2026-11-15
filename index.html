@@ -79,13 +79,25 @@ button,input,textarea{font:inherit}button{cursor:pointer}.app{max-width:540px;ma
 <div class="setting-row"><span>🎬 直播平台</span><b>抖音</b></div>
 <div class="setting-row"><span>📆 记录频率</span><b>每天一条</b></div>
 <div class="setting-row"><span>💴 默认货币</span><b>人民币（¥）</b></div>
-<div class="setting-row"><span>🔒 数据保存</span><b>本机浏览器</b></div>
+<div class="setting-row"><span>🔒 数据保存</span><b>本机 + 可选云同步</b></div>
 <div class="setting-row"><span>📦 导出数据</span><button class="soft" id="exportCsv">导出 CSV</button></div>
 <div class="setting-row"><span>🤖 机器人数据备份</span><button class="soft" id="exportJson">导出 JSON</button></div>
+<div class="setting-row"><span>📥 恢复 JSON 备份</span><button class="soft" id="importJson">选择文件</button><input id="importJsonFile" type="file" accept=".json,application/json" hidden></div>
 <div class="setting-row"><span>🗑️ 清空所有记录</span><button class="soft danger" id="clearData">清空</button></div>
 </section>
+<section class="panel" style="margin-top:14px">
+<b style="font-size:13px">☁️ 自动云同步</b>
+<p class="hint" id="syncStatus" aria-live="polite">未登录 · 手机数据仍保存在本地</p>
+<div id="syncLogin">
+<div class="field"><label>同步账号邮箱</label><input id="syncEmail" type="email" autocomplete="email" placeholder="你的邮箱"></div>
+<div class="field"><label>同步账号密码（至少8位）</label><input id="syncPassword" type="password" autocomplete="current-password" placeholder="仅用于登录，不会提交到 GitHub"></div>
+<div style="display:flex;gap:8px"><button class="soft" id="syncSignIn">登录并同步</button><button class="soft" id="syncSignUp">首次注册</button></div>
+</div>
+<div id="syncLogged" hidden><button class="soft" id="syncNow">立即同步</button> <button class="soft" id="syncSignOut">退出云同步</button></div>
+<p class="hint">手机离线时继续本地保存，重新联网并打开应用后重试。首次同步前不会删除本地记录；不同设备同时修改同一天记录会保留冲突快照。</p>
+</section>
 <section class="panel" style="margin-top:14px"><b style="font-size:13px">🤖 机器人扩展预留</b><p class="hint">每条记录使用统一字段：date、platform、amount、conversion_rate、views、note。未来可增加 API 同步层，让机器人读取、写入和分析同一套直播数据。</p></section>
-<p class="hint">数据只保存在当前设备的浏览器本地存储中。请定期导出 JSON/CSV 备份。清除 Safari 网站数据或更换设备可能导致本地数据丢失。</p>
+<p class="hint">未登录云同步时，数据只保存在本机；云同步成功后也建议定期导出 JSON/CSV。清除 Safari 网站数据可能删除尚未同步的记录。</p>
 </main>
 </div>
 
@@ -180,6 +192,28 @@ function download(filename,content,type){
  const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 function exportJSON(){const payload={app:"Pink Live",schema_version:1,exported_at:new Date().toISOString(),platform:"douyin",currency:"CNY",records:[...records]};download("粉兔直播数据_"+today+".json",JSON.stringify(payload,null,2),"application/json;charset=utf-8");toast("JSON 数据已导出")}
+async function importJSON(file){
+ if(!file)return;
+ try{
+  if(file.size>5000000)throw Error("文件超过5MB");
+  const payload=JSON.parse(await file.text());
+  if(payload.app!=="Pink Live"||!Array.isArray(payload.records))throw Error("不是粉兔直播助手备份");
+  const valid=payload.records.map(r=>{
+   if(!r||typeof r.date!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(r.date))throw Error("日期格式错误");
+   const amount=Number(r.amount),rate=Number(r.conversion_rate),views=Number(r.views);
+   if(!Number.isFinite(amount)||amount<0||!Number.isFinite(rate)||rate<0||rate>100||!Number.isSafeInteger(views)||views<0)throw Error("记录数值无效");
+   return {date:r.date,platform:"douyin",currency:"CNY",amount,conversion_rate:rate,views,note:String(r.note||""),updated_at:r.updated_at||new Date().toISOString(),schema_version:1};
+  });
+  const existing=new Set(records.map(r=>r.date));
+  const added=valid.filter(r=>!existing.has(r.date));
+  if(!confirm("将新增 "+added.length+" 条记录，保留已有 "+records.length+" 条记录。确定导入吗？"))return;
+  const snapshot={at:new Date().toISOString(),records};
+  const bk="pinkLive.import.premerge.v1",hist=JSON.parse(localStorage.getItem(bk)||"[]");
+  localStorage.setItem(bk,JSON.stringify([...hist,snapshot].slice(-3)));
+  records=[...records,...added].sort((a,b)=>a.date.localeCompare(b.date));
+  saveStore();render();toast("已恢复 "+added.length+" 条记录");
+ }catch(e){toast("导入失败："+String(e.message||e).slice(0,45))}
+}
 function exportCSV(){const rows=[["日期","平台","成交金额(CNY)","转化率(%)","场观","备注"],...records.map(r=>[r.date,"抖音",r.amount,r.conversion_rate,r.views,r.note||""])];const csv="\uFEFF"+rows.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\r\n");download("粉兔直播数据_"+today+".csv",csv,"text/csv;charset=utf-8");toast("CSV 数据已导出")}
 $("todayLabel").textContent=new Date().toLocaleDateString("zh-CN",{month:"long",day:"numeric"});
 $("addToday").onclick=()=>openForm(today);$("closeModal").onclick=()=>$("modal").classList.remove("show");$("modal").addEventListener("click",e=>{if(e.target===$("modal"))$("modal").classList.remove("show")});$("saveRecord").onclick=saveRecord;
@@ -187,10 +221,12 @@ $("recentRecords").addEventListener("click",handleEdit);$("allRecords").addEvent
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===b.dataset.view));if(b.dataset.view==="statsView")renderStats()});
 $("prevMonth").onclick=()=>{statsDate.setMonth(statsDate.getMonth()-1);renderStats()};$("nextMonth").onclick=()=>{statsDate.setMonth(statsDate.getMonth()+1);renderStats()};
 document.querySelectorAll(".metric-tabs button").forEach(b=>b.onclick=()=>{chartMetric=b.dataset.metric;document.querySelectorAll(".metric-tabs button").forEach(x=>x.classList.toggle("active",x===b));renderStats()});
+$("importJson").onclick=()=> $("importJsonFile").click();$("importJsonFile").onchange=e=>{importJSON(e.target.files?.[0]);e.target.value=""};
 $("filterMonth").value=monthKey(today);$("filterMonth").onchange=renderRecords;$("exportJson").onclick=exportJSON;$("exportCsv").onclick=exportCSV;
 $("clearData").onclick=()=>{if(confirm("确定清空全部直播记录吗？建议先导出 JSON 备份。此操作无法撤销。")){records=[];saveStore();render();toast("记录已清空")}};
 window.addEventListener("resize",()=>{if($("statsView").classList.contains("active"))renderStats()});
 render();
 if("serviceWorker" in navigator && location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 </script>
+<script src="./sync.js" defer></script>
 </body></html>
