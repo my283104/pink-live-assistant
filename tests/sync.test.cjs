@@ -26,7 +26,7 @@ function harness({local=[],remote=[],logged=true}={}){
    }else throw Error("unexpected "+u.pathname);
    return {ok:status<400,status,text:async()=>JSON.stringify(result)};
  };
- const context={URL,Date,JSON,Map,Number,String,Array,Error,Set,Promise,console,fetch,
+ const context={URL,URLSearchParams,Date,JSON,Map,Number,String,Array,Error,Set,Promise,console,fetch,
   navigator:{onLine:true},document:{readyState:"complete",getElementById:get,addEventListener(){}},
   localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)},
   window:{addEventListener(){}},location:{origin:"https://example.com",pathname:"/"},
