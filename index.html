@@ -199,7 +199,7 @@ async function importJSON(file){
   const payload=JSON.parse(await file.text());
   if(payload.app!=="Pink Live"||!Array.isArray(payload.records))throw Error("不是粉兔直播助手备份");
   const valid=payload.records.map(r=>{
-   if(!r||typeof r.date!=="string"||!/^\\d{4}-\\d{2}-\\d{2}$/.test(r.date))throw Error("日期格式错误");
+   if(!r||typeof r.date!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(r.date))throw Error("日期格式错误");
    const amount=Number(r.amount),rate=Number(r.conversion_rate),views=Number(r.views);
    if(!Number.isFinite(amount)||amount<0||!Number.isFinite(rate)||rate<0||rate>100||!Number.isSafeInteger(views)||views<0)throw Error("记录数值无效");
    return {date:r.date,platform:"douyin",currency:"CNY",amount,conversion_rate:rate,views,note:String(r.note||""),updated_at:r.updated_at||new Date().toISOString(),schema_version:1};
