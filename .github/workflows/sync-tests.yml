@@ -19,3 +19,7 @@ jobs:
           node-version: "22"
       - run: node --test tests/sync.test.cjs
       - run: node --check sync.js
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m py_compile sync-server/cloud_pull.py sync-server/backup.py
