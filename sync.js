@@ -13,7 +13,9 @@ const el=id=>document.getElementById(id);
 const status=(s)=>{if(el("syncStatus"))el("syncStatus").textContent=s};
 function persist(){if(session)localStorage.setItem(SESSION_KEY,JSON.stringify(session));else localStorage.removeItem(SESSION_KEY)}
 async function api(path,opts={}){
- const res=await fetch(URL+path,{...opts,headers:{...headers(),...(opts.headers||{})}});
+ let res;
+ try{res=await fetch(URL+path,{...opts,headers:{...headers(),...(opts.headers||{})}})}
+ catch(e){throw Error("网络连接失败：请在Safari中检查网络或关闭VPN后重试（"+String(e.message||e)+"）")}
  const raw=await res.text();let data;try{data=raw?JSON.parse(raw):null}catch{data=raw}
  if(!res.ok)throw Error(data?.msg||data?.message||data?.error_description||data?.error||("HTTP "+res.status));
  return data;
