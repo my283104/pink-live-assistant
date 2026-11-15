@@ -1,0 +1,21 @@
+name: Pink Live sync tests
+on:
+  pull_request:
+    paths:
+      - "sync.js"
+      - "tests/**"
+      - ".github/workflows/sync-tests.yml"
+  push:
+    branches: ["feature/supabase-sync"]
+jobs:
+  sync-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node --test tests/sync.test.cjs
+      - run: node --check sync.js
