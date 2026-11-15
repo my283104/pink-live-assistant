@@ -1,6 +1,10 @@
 /* Pink Live optional Supabase sync. No service-role keys. Existing localStorage KEY is unchanged. */
 (()=>{"use strict";
-const URL="https://lwufkxqueacijsrsjsui.supabase.co";
+const DIRECT_URL="https://lwufkxqueacijsrsjsui.supabase.co";
+// Set only after the relay passes mainland no-VPN and authenticated RLS tests.
+// Leave blank for the current, working direct connection.
+const PROXY_URL="";
+const URL=PROXY_URL||DIRECT_URL;
 const KEY="sb_publishable_L5Q4vClg-mkDuZsDL1dmqw_4_BxruEE";
 const SESSION_KEY="pinkLive.supabase.session.v1";
 const LAST_SYNC_KEY="pinkLive.sync.lastSuccessful.v1";
