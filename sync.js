@@ -47,7 +47,9 @@ async function sync(){
  const remote=await api("/rest/v1/live_records?select=record_date,amount,conversion_rate,views,note,updated_at&order=record_date.asc&limit=10000",{headers:h});
  const localMap=new Map(records.map(r=>[r.date,normalize(r)]).filter(x=>x[1]));
  const remoteMap=new Map(remote.map(r=>[r.record_date,normalize({...r,date:r.record_date})]).filter(x=>x[1]));
+ const remoteRaw=new Map(remote.map(r=>[r.record_date,r]));
  const uploads=[],downloads=[],conflicts=[];
+ const startingLocal=new Map(localMap);
  for(const [date,l] of localMap){
    const r=remoteMap.get(date);
    if(!r){uploads.push(l);continue}
@@ -68,7 +70,7 @@ async function sync(){
   const body={user_id:user.id,record_date:r.date,amount:r.amount,conversion_rate:r.conversion_rate,views:r.views,note:r.note,updated_at:r.updated_at};
   if(remoteMap.has(r.date)){
    const existing=remoteMap.get(r.date);
-   const params=new URLSearchParams({record_date:"eq."+r.date,updated_at:"eq."+existing.updated_at});
+   const params=new URLSearchParams({record_date:"eq."+r.date,updated_at:"eq."+remoteRaw.get(r.date).updated_at});
    const changed=await api("/rest/v1/live_records?"+params,{method:"PATCH",headers:{...h,Prefer:"return=representation"},body:JSON.stringify(body)});
    if(!Array.isArray(changed)||changed.length!==1)throw Error("云端数据已变化，请稍后重试");
   }else{
@@ -78,7 +80,12 @@ async function sync(){
  }
  if(downloads.length){
   const map=new Map(records.map(r=>[r.date,r]));
-  for(const r of downloads)map.set(r.date,r);
+  for(const r of downloads){
+    const now=normalize(map.get(r.date));
+    const start=startingLocal.get(r.date);
+    if(now && (!start || fingerprint(now)!==fingerprint(start) || now.updated_at!==start.updated_at))continue;
+    map.set(r.date,r);
+  }
   records=[...map.values()].sort((a,b)=>a.date.localeCompare(b.date));
   saveStore();render();
  }
