@@ -78,6 +78,16 @@ def pull():
                     conversion_rate=excluded.conversion_rate,views=excluded.views,note=excluded.note,
                     updated_at=excluded.updated_at,pulled_at=excluded.pulled_at""",
                     (user["id"],r["record_date"],str(r["amount"]),str(r["conversion_rate"]),int(r["views"]),r["note"],r["updated_at"],stamp))
+        # One verified daily snapshot, retained for 30 days.
+        backup_dir=BASE/"backups";backup_dir.mkdir(exist_ok=True)
+        snapshot=backup_dir/("pink_live_"+datetime.now().strftime("%Y%m%d")+".sqlite3")
+        if not snapshot.exists():
+            with sqlite3.connect(DB) as source,sqlite3.connect(snapshot) as target:
+                source.backup(target)
+                if target.execute("PRAGMA integrity_check").fetchone()[0]!="ok":
+                    raise RuntimeError("Backup integrity check failed")
+            for old in sorted(backup_dir.glob("pink_live_????????.sqlite3"))[:-30]:
+                old.unlink()
         print(f"Cloud pull complete: {len(rows)} records saved to {DB}")
     except (urllib.error.URLError,KeyError,ValueError) as e:
         raise RuntimeError("Cloud pull failed; existing local data untouched: "+str(e)) from e
