@@ -18,6 +18,12 @@ def blob(raw):
 def protect(raw,encrypt=True):
     if sys.platform!="win32": raise RuntimeError("This script requires Windows DPAPI")
     crypt=ctypes.windll.crypt32;kernel=ctypes.windll.kernel32
+    crypt.CryptProtectData.argtypes=[ctypes.POINTER(BLOB),ctypes.c_wchar_p,ctypes.POINTER(BLOB),ctypes.c_void_p,ctypes.c_void_p,ctypes.wintypes.DWORD,ctypes.POINTER(BLOB)]
+    crypt.CryptProtectData.restype=ctypes.wintypes.BOOL
+    crypt.CryptUnprotectData.argtypes=[ctypes.POINTER(BLOB),ctypes.c_void_p,ctypes.POINTER(BLOB),ctypes.c_void_p,ctypes.c_void_p,ctypes.wintypes.DWORD,ctypes.POINTER(BLOB)]
+    crypt.CryptUnprotectData.restype=ctypes.wintypes.BOOL
+    kernel.LocalFree.argtypes=[ctypes.c_void_p]
+    kernel.LocalFree.restype=ctypes.c_void_p
     input_blob,hold=blob(raw);output=BLOB()
     fn=crypt.CryptProtectData if encrypt else crypt.CryptUnprotectData
     if encrypt: ok=fn(ctypes.byref(input_blob),None,None,None,None,0,ctypes.byref(output))
