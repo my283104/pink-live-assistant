@@ -32,11 +32,12 @@ async function accessToken(){
 }
 function normalize(r){
  if(!r||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(r.date))return null;
+ const w=Number(r.wechat_amount||0);if(!Number.isFinite(w)||w<0)return null;
  const a=Number(r.amount),c=Number(r.conversion_rate),v=Number(r.views);
  if(!Number.isFinite(a)||a<0||!Number.isFinite(c)||c<0||c>100||!Number.isSafeInteger(v)||v<0)return null;
- return {date:r.date,amount:a,conversion_rate:c,views:v,note:String(r.note||""),platform:"douyin",currency:"CNY",updated_at:Number.isFinite(Date.parse(r.updated_at))?r.updated_at:"1970-01-01T00:00:00.000Z",schema_version:1};
+ return {wechat_amount:w,is_rest:r.is_rest===true,date:r.date,amount:a,conversion_rate:c,views:v,note:String(r.note||""),platform:"douyin",currency:"CNY",updated_at:Number.isFinite(Date.parse(r.updated_at))?r.updated_at:"1970-01-01T00:00:00.000Z",schema_version:1};
 }
-function fingerprint(r){return JSON.stringify([r.amount,r.conversion_rate,r.views,r.note])}
+function fingerprint(r){return JSON.stringify([r.wechat_amount||0,!!r.is_rest,r.amount,r.conversion_rate,r.views,r.note])}
 function backup(){
  const snapshots=JSON.parse(localStorage.getItem(BACKUP_KEY)||"[]");
  snapshots.push({at:new Date().toISOString(),records:records});
@@ -50,7 +51,7 @@ async function sync(){
  const h={Authorization:"Bearer "+token};
  const user=await api("/auth/v1/user",{headers:h});
  if(!user?.id)throw Error("未登录");
- const remote=await api("/rest/v1/live_records?select=record_date,amount,conversion_rate,views,note,updated_at&order=record_date.asc&limit=10000",{headers:h});
+ const remote=await api("/rest/v1/live_records?select=wechat_amount,is_rest,record_date,amount,conversion_rate,views,note,updated_at&order=record_date.asc&limit=10000",{headers:h});
  const localMap=new Map(records.map(r=>[r.date,normalize(r)]).filter(x=>x[1]));
  if(localMap.size!==records.length)throw Error("本地存在无效记录，已暂停同步以保护数据");
  const remoteMap=new Map(remote.map(r=>[r.record_date,normalize({...r,date:r.record_date})]).filter(x=>x[1]));
@@ -75,7 +76,7 @@ async function sync(){
  }
  // Upsert only newer local values; avoid a server-side blind overwrite via a conditional update.
  for(const r of uploads){
-  const body={user_id:user.id,record_date:r.date,amount:r.amount,conversion_rate:r.conversion_rate,views:r.views,note:r.note,updated_at:r.updated_at};
+  const body={wechat_amount:r.wechat_amount,is_rest:r.is_rest,user_id:user.id,record_date:r.date,amount:r.amount,conversion_rate:r.conversion_rate,views:r.views,note:r.note,updated_at:r.updated_at};
   if(remoteMap.has(r.date)){
    const params=new URLSearchParams({record_date:"eq."+r.date,updated_at:"eq."+remoteRaw.get(r.date).updated_at});
    const changed=await api("/rest/v1/live_records?"+params,{method:"PATCH",headers:{...h,Prefer:"return=representation"},body:JSON.stringify(body)});
@@ -137,3 +138,4 @@ function init(){
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();
+

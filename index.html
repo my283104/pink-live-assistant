@@ -41,8 +41,8 @@ button,input,textarea{font:inherit}button{cursor:pointer}.app{max-width:540px;ma
 <header class="top"><div class="brand"><div class="rabbit">🐰</div><div><h1>粉兔直播助手</h1><small>PINK LIVE · 每天进步一点点</small></div></div><div class="date-pill" id="todayLabel"></div></header>
 
 <main id="homeView" class="view active">
-<section class="hero"><div class="hero-label">今日成交金额 · DOUYIN LIVE</div><div class="hero-amount" id="todayAmount">¥0.00</div><div class="hero-row"><div class="hero-stat"><span>👀 今日场观</span><b id="todayViews">—</b></div><div class="hero-stat"><span>💗 今日转化率</span><b id="todayRate">—</b></div></div></section>
-<div class="section-head"><h2>🌷 今日直播表现</h2><small id="todayStatus">等待记录</small></div>
+<section class="hero"><div class="hero-label">今日双平台成交金额</div><div class="hero-amount" id="todayAmount">¥0.00</div><div class="hero-row"><div class="hero-stat"><span>👀 今日场观</span><b id="todayViews">—</b></div><div class="hero-stat"><span>💗 今日转化率</span><b id="todayRate">—</b></div></div></section>
+<p class="hint" id="todayPlatforms"></p><div class="section-head"><h2>🌷 今日直播表现</h2><small id="todayStatus">等待记录</small></div>
 <div class="kpi-grid">
 <div class="kpi"><div class="klabel">💰 成交金额</div><b id="homeAmount">¥0.00</b><small>人民币 CNY</small></div>
 <div class="kpi views"><div class="klabel">👀 直播场观</div><b id="homeViews">—</b><small>累计观看人数</small></div>
@@ -63,20 +63,20 @@ button,input,textarea{font:inherit}button{cursor:pointer}.app{max-width:540px;ma
 <div class="summary-card"><small>本月平均转化率</small><b id="statRate">—</b></div>
 <div class="summary-card"><small>本月日均成交</small><b id="statAverage">¥0.00</b></div>
 </div>
-<section class="panel"><div class="section-head" style="margin:0"><h2>🌸 趋势图</h2></div><div class="metric-tabs"><button class="active" data-metric="amount">成交金额</button><button data-metric="views">场观</button><button data-metric="rate">转化率</button></div><div class="chart-wrap"><canvas id="trendChart"></canvas></div><div class="hint" id="chartHint">按日期查看当月变化</div></section>
+<p class="hint" id="platformSummary"></p><section class="panel"><div class="section-head" style="margin:0"><h2>🌸 趋势图</h2></div><div class="metric-tabs"><button class="active" data-metric="amount">成交金额</button><button data-metric="views">场观</button><button data-metric="rate">转化率</button></div><div class="chart-wrap"><canvas id="trendChart"></canvas></div><div class="hint" id="chartHint">按日期查看当月变化</div></section>
 <p class="hint">平均转化率按有记录日期的简单平均计算；累计场观为每日场观相加。若平台后台对场观采用不同统计口径，请以平台后台为准。</p>
 </main>
 
 <main id="recordsView" class="view">
 <h2 class="page-title">📖 每日直播记录</h2>
 <div class="field"><label>筛选月份</label><input type="month" id="filterMonth"></div>
-<section class="panel" id="allRecords"></section>
+<section class="panel" id="calendar"></section><section class="panel" id="allRecords"></section>
 </main>
 
 <main id="settingsView" class="view">
 <h2 class="page-title">🐰 小兔设置</h2>
 <section class="panel">
-<div class="setting-row"><span>🎬 直播平台</span><b>抖音</b></div>
+<div class="setting-row"><span>🎬 直播平台</span><b>抖音 + 视频号</b></div>
 <div class="setting-row"><span>📆 记录频率</span><b>每天一条</b></div>
 <div class="setting-row"><span>💴 默认货币</span><b>人民币（¥）</b></div>
 <div class="setting-row"><span>🔒 数据保存</span><b>本机 + 可选云同步</b></div>
@@ -108,7 +108,7 @@ button,input,textarea{font:inherit}button{cursor:pointer}.app{max-width:540px;ma
 <div class="overlay" id="modal"><div class="sheet">
 <div class="sheet-head"><h2 id="formTitle">🌷 记录今日直播</h2><button class="close" id="closeModal">×</button></div>
 <div class="field"><label>直播日期</label><input type="date" id="fDate"></div>
-<div class="field"><label>💰 成交金额（人民币 ¥）</label><input type="number" id="fAmount" inputmode="decimal" min="0" step="0.01" placeholder="例如：8680.00"></div>
+<div class="field"><label><input type="checkbox" id="fRest" style="width:auto"> 今天休息（收入保留，不计入直播天数）</label></div><div class="field"><label>视频号金额（¥）</label><input type="number" id="fWechat" min="0" step="0.01" value="0"></div><div class="field"><label>💰 抖音成交金额（人民币 ¥）</label><input type="number" id="fAmount" inputmode="decimal" min="0" step="0.01" placeholder="例如：8680.00"></div>
 <div class="field"><label>💗 转化率（%）</label><input type="number" id="fRate" inputmode="decimal" min="0" max="100" step="0.01" placeholder="例如：3.68"></div>
 <div class="field"><label>👀 直播场观</label><input type="number" id="fViews" inputmode="numeric" min="0" step="1" placeholder="例如：12860"></div>
 <div class="field"><label>📝 备注（选填）</label><textarea id="fNote" placeholder="例如：上新专场、活动日、投流情况……"></textarea></div>
@@ -127,6 +127,7 @@ function loadRecords(){try{const v=JSON.parse(localStorage.getItem(KEY)||"[]");r
 function saveStore(){localStorage.setItem(KEY,JSON.stringify(records))}
 function money(v){return "¥"+Number(v||0).toLocaleString("zh-CN",{minimumFractionDigits:2,maximumFractionDigits:2})}
 function number(v){return Number(v||0).toLocaleString("zh-CN")}
+function totalAmount(r){return Number(r.amount||0)+Number(r.wechat_amount||0)}
 function monthKey(d){return d.slice(0,7)}
 function monthRecords(m){return records.filter(r=>monthKey(r.date)===m)}
 function getToday(){return records.find(r=>r.date===today)}
@@ -134,20 +135,23 @@ function toast(s){$("toast").textContent=s;$("toast").classList.add("show");setT
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function avg(a){return a.length?a.reduce((s,v)=>s+v,0)/a.length:0}
 function fmtRate(v){return v==null||v===""?"—":Number(v).toFixed(2)+"%"}
-function recordCard(r){const d=new Date(r.date+"T00:00:00");return `<div class="record"><div class="record-date">${d.getMonth()+1}月${d.getDate()}日</div><div class="record-info"><b>抖音直播</b><small>场观 ${number(r.views)} · 转化 ${fmtRate(r.conversion_rate)}</small></div><div class="record-value"><b>${money(r.amount)}</b><small>${r.note?esc(r.note):"成交金额"}</small></div><button class="soft edit" data-date="${r.date}">编辑</button></div>`}
+function recordCard(r){const d=new Date(r.date+"T00:00:00");return `<div class="record"><div class="record-date">${d.getMonth()+1}月${d.getDate()}日</div><div class="record-info"><b>${r.is_rest?"🌙 休息日":"抖音 + 视频号"}</b><small>抖音 ${money(r.amount)} · 视频号 ${money(r.wechat_amount)}</small><small>场观 ${number(r.views)} · 转化 ${fmtRate(r.conversion_rate)}</small></div><div class="record-value"><b>${money(totalAmount(r))}</b><small>${r.note?esc(r.note):"成交金额"}</small></div><button class="soft edit" data-date="${r.date}">编辑</button></div>`}
 function renderHome(){
  const t=getToday(), m=monthRecords(monthKey(today));
- $("todayAmount").textContent=t?money(t.amount):"—";$("todayViews").textContent=t?number(t.views):"—";$("todayRate").textContent=t?fmtRate(t.conversion_rate):"—";
- $("homeAmount").textContent=t?money(t.amount):"—";$("homeViews").textContent=t?number(t.views):"—";$("homeRate").textContent=t?fmtRate(t.conversion_rate):"—";$("monthDays").textContent=m.length+" 天";
- $("todayStatus").textContent=t?"今日数据已记录 ♡":"还没有记录今天的数据";
+ $("todayPlatforms").textContent=t?"抖音 "+money(t.amount)+" · 视频号 "+money(t.wechat_amount):"";
+ $("todayAmount").textContent=t?money(totalAmount(t)):"—";$("todayViews").textContent=t?number(t.views):"—";$("todayRate").textContent=t?fmtRate(t.conversion_rate):"—";
+ $("homeAmount").textContent=t?money(totalAmount(t)):"—";$("homeViews").textContent=t?number(t.views):"—";$("homeRate").textContent=t?fmtRate(t.conversion_rate):"—";$("monthDays").textContent=m.filter(r=>!r.is_rest).length+" 天";
+ $("todayStatus").textContent=t?(t.is_rest?"🌙 今日休息":"今日数据已记录 ♡"):"还没有记录今天的数据";
  const latest=[...records].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
  $("recentRecords").innerHTML=latest.length?latest.map(recordCard).join(""):`<div class="empty"><span>🐰</span>还没有直播记录，先记录今天的成绩吧！</div>`;
 }
 function renderStats(){
- const m=statsDate.getFullYear()+"-"+String(statsDate.getMonth()+1).padStart(2,"0"), list=monthRecords(m);
+ const m=statsDate.getFullYear()+"-"+String(statsDate.getMonth()+1).padStart(2,"0"), list=monthRecords(m).filter(r=>!r.is_rest);
  $("statsMonth").textContent=m;
- const total=list.reduce((s,r)=>s+Number(r.amount),0), views=list.reduce((s,r)=>s+Number(r.views),0), rates=list.map(r=>Number(r.conversion_rate)).filter(v=>Number.isFinite(v));
+ const total=list.reduce((s,r)=>s+totalAmount(r),0), views=list.reduce((s,r)=>s+Number(r.views),0), rates=list.map(r=>Number(r.conversion_rate)).filter(v=>Number.isFinite(v));
  $("statAmount").textContent=money(total);$("statViews").textContent=number(views);$("statRate").textContent=rates.length?fmtRate(avg(rates)):"—";$("statAverage").textContent=money(list.length?total/list.length:0);
+ $("statAmount").title="抖音 "+money(list.reduce((s,r)=>s+Number(r.amount),0))+" · 视频号 "+money(list.reduce((s,r)=>s+Number(r.wechat_amount||0),0));
+ $("platformSummary").textContent=$("statAmount").title;
  drawChart(list);
 }
 function drawChart(list){
@@ -155,17 +159,22 @@ function drawChart(list){
  c.width=Math.max(300,rect.width*dpr);c.height=170*dpr;
  const ctx=c.getContext("2d");ctx.scale(dpr,dpr);const w=c.width/dpr,h=170;
  const days=Array.from({length:new Date(statsDate.getFullYear(),statsDate.getMonth()+1,0).getDate()},(_,i)=>i+1);
- const map=new Map(list.map(r=>[Number(r.date.slice(8,10)),Number(r[chartMetric]??0)]));
- const vals=days.map(d=>map.get(d)||0), max=Math.max(...vals,1), left=35,right=8,top=12,bottom=25,plotH=h-top-bottom,plotW=w-left-right;
+ const map=new Map(list.map(r=>[Number(r.date.slice(8,10)),chartMetric==="amount"?totalAmount(r):Number(r[chartMetric==="rate"?"conversion_rate":chartMetric]??0)]));
+ const vals=days.map(d=>map.has(d)?map.get(d):null), max=Math.max(...vals,1), left=35,right=8,top=12,bottom=25,plotH=h-top-bottom,plotW=w-left-right;
  ctx.font="9px -apple-system, sans-serif";ctx.fillStyle="#ad98a2";ctx.strokeStyle="#f5e5ec";ctx.lineWidth=1;
  for(let i=0;i<4;i++){let y=top+plotH*i/3;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(w-right,y);ctx.stroke()}
  const step=plotW/days.length;ctx.strokeStyle="#e98bb0";ctx.fillStyle="#e98bb0";ctx.lineWidth=2;ctx.beginPath();
- vals.forEach((v,i)=>{let x=left+step*(i+.5),y=top+plotH-(v/max)*plotH;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.stroke();
+ vals.forEach((v,i)=>{let x=left+step*(i+.5),y=top+plotH-(v/max)*plotH;if(v===null)return;if(i===0||vals[i-1]===null)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.stroke();
  vals.forEach((v,i)=>{if(v>0){let x=left+step*(i+.5),y=top+plotH-(v/max)*plotH;ctx.beginPath();ctx.arc(x,y,2.6,0,Math.PI*2);ctx.fill()}});
  [1,5,10,15,20,25,days.length].filter((v,i,a)=>a.indexOf(v)===i&&v<=days.length).forEach(d=>{let x=left+step*(d-.5);ctx.fillStyle="#ad98a2";ctx.fillText(String(d),x-4,h-7)});
  const labels={amount:"成交金额（元）",views:"场观（人次）",rate:"转化率（%）"};$("chartHint").textContent=labels[chartMetric]+" · 每日数据";
 }
+function renderCalendar(){
+ const m=$("filterMonth").value||monthKey(today),[y,mo]=m.split("-").map(Number),n=new Date(y,mo,0).getDate();
+ $("calendar").innerHTML='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">'+['日','一','二','三','四','五','六'].map(d=>'<small>'+d+'</small>').join('')+'<span></span>'.repeat(new Date(y,mo-1,1).getDay())+Array.from({length:n},(_,i)=>{const date=m+'-'+String(i+1).padStart(2,'0'),r=records.find(r=>r.date===date);return `<button class="soft edit" data-date="${date}" style="padding:8px 1px;font-size:10px;background:${r?.is_rest?'#f4efff':'white'}">${i+1}<br>${r?.is_rest?'🌙休息':r?money(totalAmount(r)):'未记录'}</button>`}).join('')+'</div><p class="hint">点击日期记录或编辑；休息日不计入直播天数、日均及趋势。</p>';
+}
 function renderRecords(){
+ renderCalendar();
  const f=$("filterMonth").value, list=[...records].filter(r=>!f||monthKey(r.date)===f).sort((a,b)=>b.date.localeCompare(a.date));
  $("allRecords").innerHTML=list.length?list.map(recordCard).join(""):`<div class="empty"><span>🌷</span>这个月还没有直播数据</div>`;
 }
@@ -174,15 +183,17 @@ function openForm(date=today){
  editingDate=date;const r=records.find(x=>x.date===date);
  $("formTitle").textContent=r?"✏️ 修改直播数据":"🌷 记录直播数据";
  $("fDate").value=date;$("fAmount").value=r?.amount??"";$("fRate").value=r?.conversion_rate??"";$("fViews").value=r?.views??"";$("fNote").value=r?.note??"";
+ $("fWechat").value=r?.wechat_amount??0;$("fRest").checked=!!r?.is_rest;
  $("modal").classList.add("show");
 }
 function saveRecord(){
- const date=$("fDate").value, amount=$("fAmount").value, rate=$("fRate").value, views=$("fViews").value;
+ const date=$("fDate").value, amount=$("fAmount").value||($("fRest").checked?"0":""), rate=$("fRate").value||"0", views=$("fViews").value||"0";
  if(!date){toast("请选择直播日期");return}
  if(amount===""||!Number.isFinite(Number(amount))||Number(amount)<0){toast("请填写正确的成交金额");return}
  if(rate===""||!Number.isFinite(Number(rate))||Number(rate)<0||Number(rate)>100){toast("转化率请填写 0–100 之间的百分比");return}
  if(views===""||!Number.isInteger(Number(views))||Number(views)<0){toast("请填写正确的场观人数");return}
- const obj={date,platform:"douyin",currency:"CNY",amount:Math.round(Number(amount)*100)/100,conversion_rate:Math.round(Number(rate)*100)/100,views:Number(views),note:$("fNote").value.trim(),updated_at:new Date().toISOString(),schema_version:1};
+ const wechat=Number($("fWechat").value);if(!Number.isFinite(wechat)||wechat<0){toast("请填写正确的视频号金额");return}
+ const obj={...records.find(r=>r.date===date),wechat_amount:Math.round(wechat*100)/100,is_rest:$("fRest").checked,date,platform:"douyin",currency:"CNY",amount:Math.round(Number(amount)*100)/100,conversion_rate:Math.round(Number(rate)*100)/100,views:Number(views),note:$("fNote").value.trim(),updated_at:new Date().toISOString(),schema_version:1};
  const idx=records.findIndex(r=>r.date===date);
  if(idx>=0)records[idx]=obj;else records.push(obj);
  records.sort((a,b)=>a.date.localeCompare(b.date));saveStore();$("modal").classList.remove("show");render();toast("直播数据保存成功 ♡");
@@ -202,7 +213,8 @@ async function importJSON(file){
    if(!r||typeof r.date!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(r.date))throw Error("日期格式错误");
    const amount=Number(r.amount),rate=Number(r.conversion_rate),views=Number(r.views);
    if(!Number.isFinite(amount)||amount<0||!Number.isFinite(rate)||rate<0||rate>100||!Number.isSafeInteger(views)||views<0)throw Error("记录数值无效");
-   return {date:r.date,platform:"douyin",currency:"CNY",amount,conversion_rate:rate,views,note:String(r.note||""),updated_at:r.updated_at||new Date().toISOString(),schema_version:1};
+   if(!Number.isFinite(Number(r.wechat_amount||0))||Number(r.wechat_amount||0)<0)throw Error("视频号金额无效");
+   return {wechat_amount:Number(r.wechat_amount||0),is_rest:r.is_rest===true,date:r.date,platform:"douyin",currency:"CNY",amount,conversion_rate:rate,views,note:String(r.note||""),updated_at:r.updated_at||new Date().toISOString(),schema_version:1};
   });
   const existing=new Set(records.map(r=>r.date));
   const added=valid.filter(r=>!existing.has(r.date));
@@ -214,12 +226,13 @@ async function importJSON(file){
   saveStore();render();toast("已恢复 "+added.length+" 条记录");
  }catch(e){toast("导入失败："+String(e.message||e).slice(0,45))}
 }
-function exportCSV(){const rows=[["日期","平台","成交金额(CNY)","转化率(%)","场观","备注"],...records.map(r=>[r.date,"抖音",r.amount,r.conversion_rate,r.views,r.note||""])];const csv="\uFEFF"+rows.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\r\n");download("粉兔直播数据_"+today+".csv",csv,"text/csv;charset=utf-8");toast("CSV 数据已导出")}
+function exportCSV(){const rows=[["日期","平台","抖音金额(CNY)","视频号金额(CNY)","合计(CNY)","休息日","转化率(%)","场观","备注"],...records.map(r=>[r.date,"抖音+视频号",r.amount,r.wechat_amount||0,totalAmount(r),r.is_rest?"是":"否",r.conversion_rate,r.views,r.note||""])];const csv="\uFEFF"+rows.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\r\n");download("粉兔直播数据_"+today+".csv",csv,"text/csv;charset=utf-8");toast("CSV 数据已导出")}
 $("todayLabel").textContent=new Date().toLocaleDateString("zh-CN",{month:"long",day:"numeric"});
 $("addToday").onclick=()=>openForm(today);$("closeModal").onclick=()=>$("modal").classList.remove("show");$("modal").addEventListener("click",e=>{if(e.target===$("modal"))$("modal").classList.remove("show")});$("saveRecord").onclick=saveRecord;
+$("calendar").addEventListener("click",handleEdit);
 $("recentRecords").addEventListener("click",handleEdit);$("allRecords").addEventListener("click",handleEdit);
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===b.dataset.view));if(b.dataset.view==="statsView")renderStats()});
-$("prevMonth").onclick=()=>{statsDate.setMonth(statsDate.getMonth()-1);renderStats()};$("nextMonth").onclick=()=>{statsDate.setMonth(statsDate.getMonth()+1);renderStats()};
+$("prevMonth").onclick=()=>{statsDate.setDate(1);statsDate.setMonth(statsDate.getMonth()-1);renderStats()};$("nextMonth").onclick=()=>{statsDate.setDate(1);statsDate.setMonth(statsDate.getMonth()+1);renderStats()};
 document.querySelectorAll(".metric-tabs button").forEach(b=>b.onclick=()=>{chartMetric=b.dataset.metric;document.querySelectorAll(".metric-tabs button").forEach(x=>x.classList.toggle("active",x===b));renderStats()});
 $("importJson").onclick=()=> $("importJsonFile").click();$("importJsonFile").onchange=e=>{importJSON(e.target.files?.[0]);e.target.value=""};
 $("filterMonth").value=monthKey(today);$("filterMonth").onchange=renderRecords;$("exportJson").onclick=exportJSON;$("exportCsv").onclick=exportCSV;
@@ -230,3 +243,4 @@ if("serviceWorker" in navigator && location.protocol.startsWith("http"))window.a
 </script>
 <script src="./sync.js" defer></script>
 </body></html>
+

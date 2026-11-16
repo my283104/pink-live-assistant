@@ -62,3 +62,17 @@ test("does not upload before login",async()=>{
  const h=harness({logged:false,local:[row("2026-11-05",10)]});
  await h.sync();assert.equal(h.requests.length,0);
 });
+test("round trips video account amounts and rest days",async()=>{
+ const r={...row("2026-11-06",12),wechat_amount:34.56,is_rest:true};
+ const h=harness({local:[r]});await h.sync();
+ assert.equal(h.db.get(r.date).wechat_amount,34.56);assert.equal(h.db.get(r.date).is_rest,true);
+ const d=harness({remote:[h.db.get(r.date)]});await d.sync();
+ assert.equal(d.read()[0].wechat_amount,34.56);assert.equal(d.read()[0].is_rest,true);
+});
+test("video account only edits participate in conflict detection",async()=>{
+ const h=harness({local:[{...row("2026-11-07",10,"2026-11-16T10:00:00Z"),wechat_amount:50}],remote:[row("2026-11-07",10)]});
+ await h.sync();assert.equal(h.db.get("2026-11-07").wechat_amount,50);
+ assert.ok(h.store.get("pinkLive.sync.conflicts.v1"));
+});
+
+

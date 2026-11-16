@@ -56,7 +56,7 @@ def pull():
         if not user.get("id"):raise RuntimeError("Invalid user session")
         rows=[];offset=0
         while True:
-            q=urllib.parse.urlencode({"select":"record_date,amount,conversion_rate,views,note,updated_at","order":"record_date.asc","limit":"1000","offset":str(offset)})
+            q=urllib.parse.urlencode({"select":"wechat_amount,is_rest,record_date,amount,conversion_rate,views,note,updated_at","order":"record_date.asc","limit":"1000","offset":str(offset)})
             page=request("/rest/v1/live_records?"+q,token=s["access_token"])
             rows.extend(page)
             if len(page)<1000:break
@@ -72,8 +72,10 @@ def pull():
             db.execute("""CREATE TABLE IF NOT EXISTS cloud_record_history (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,user_id TEXT NOT NULL,
                 record_date TEXT NOT NULL, payload TEXT NOT NULL, archived_at TEXT NOT NULL)""")
+            db.execute("CREATE TABLE IF NOT EXISTS cloud_record_details (user_id TEXT NOT NULL, record_date TEXT NOT NULL, payload TEXT NOT NULL, PRIMARY KEY(user_id,record_date))")
             stamp=datetime.now(timezone.utc).isoformat()
             for r in rows:
+                db.execute("INSERT INTO cloud_record_details VALUES(?,?,?) ON CONFLICT(user_id,record_date) DO UPDATE SET payload=excluded.payload",(user["id"],r["record_date"],json.dumps(r,ensure_ascii=False)))
                 old=db.execute("SELECT amount,conversion_rate,views,note,updated_at FROM cloud_records WHERE user_id=? AND record_date=?",(user["id"],r["record_date"])).fetchone()
                 if old and old!=(str(r["amount"]),str(r["conversion_rate"]),int(r["views"]),r["note"],r["updated_at"]):
                     db.execute("INSERT INTO cloud_record_history(user_id,record_date,payload,archived_at) VALUES(?,?,?,?)",
@@ -101,3 +103,5 @@ if __name__=="__main__":
     p=argparse.ArgumentParser();p.add_argument("--login",action="store_true");args=p.parse_args()
     if args.login:authenticate()
     else:pull()
+
+
